@@ -20,7 +20,7 @@ const MAX_LIMIT = 100;
 matchRouter.get('/', async (req,res) =>{
     const parsed = listMatchesSchema.safeParse(req.query)
     if(!parsed.success){
-        return res.status(400).json({error:parsed.error.errors[0].message})
+        return res.status(400).json({ error: parsed.error.issues[0]?.message ?? 'Invalid query parameters' })
     }
     const limit = Math.min(parsed.data.limit ?? 50 , MAX_LIMIT)
     try{
@@ -34,7 +34,7 @@ matchRouter.get('/', async (req,res) =>{
 matchRouter.post('/', async (req,res) =>{
     const parsed = createMatchSchema.safeParse(req.body)
     if(!parsed.success){
-        return res.status(400).json({error:parsed.error.errors[0].message})
+        return res.status(400).json({ error: parsed.error.issues[0]?.message ?? 'Invalid request body' })
     }
     
     const {data: {startTime, endTime, homeScore, awayScore}} = parsed;
@@ -50,6 +50,7 @@ matchRouter.post('/', async (req,res) =>{
         }).returning();
         res.status(201).json({data: event})
     }catch (e){
-        res.status(500).json({error:"Internal Server Error", details: e.message ?? String(e)})
+        console.error('Failed to create match', e);
+        res.status(500).json({error:"Internal Server Error"})
     }
 })
